@@ -1,0 +1,17 @@
+model Subscription {
+    id               String           @id @default(auto()) @map("_id") @db.ObjectId
+    title            String
+    price            Float
+    subscriptionType SubscriptionType
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("subscription")
+}
+
+enum SubscriptionType {
+    FREE
+    MONTHLY
+    YEARLY
+}
