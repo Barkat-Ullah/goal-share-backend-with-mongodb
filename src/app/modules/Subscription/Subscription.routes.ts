@@ -7,12 +7,12 @@ const router = express.Router();
 
 router.get(
   '/',
-  auth(UserRoleEnum.ADMIN),
+  auth(UserRoleEnum.ADMIN, UserRoleEnum.USER),
   SubscriptionController.getAllSubscription,
 );
 router.get(
   '/:id',
-  auth(UserRoleEnum.ADMIN),
+  auth(UserRoleEnum.ADMIN, UserRoleEnum.USER),
   SubscriptionController.getSubscriptionById,
 );
 router.post('/', auth(UserRoleEnum.ADMIN), SubscriptionController.createIntoDb);
@@ -21,6 +21,10 @@ router.put(
   auth(UserRoleEnum.ADMIN),
   SubscriptionController.updateIntoDb,
 );
-router.delete('/:id', SubscriptionController.deleteIntoDb);
+router.delete(
+  '/:id',
+  auth(UserRoleEnum.ADMIN),
+  SubscriptionController.deleteIntoDb,
+);
 
 export const SubscriptionRoutes = router;

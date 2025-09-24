@@ -5,10 +5,7 @@ import { prisma } from '../../utils/prisma';
 import { deleteFile, uploadSingleFile } from '../../utils/uploadFiles';
 import { Request } from 'express';
 import AppError from '../../errors/AppError';
-import {
-  deleteFromDigitalOceanAWS,
-  uploadToDigitalOceanAWS,
-} from '../../utils/uploadToDigitalOceanAWS';
+import { uploadToDigitalOceanAWS } from '../../utils/uploadToDigitalOceanAWS';
 
 interface UserWithOptionalPassword extends Omit<User, 'password'> {
   password?: string;
@@ -23,6 +20,7 @@ const getAllUsersFromDB = async (query: any) => {
     .fields()
     .exclude()
     .paginate()
+    .include({ subscription: true })
     .execute();
   return result;
 };
@@ -32,6 +30,7 @@ const getMyProfileFromDB = async (id: string) => {
     where: {
       id: id,
     },
+    include: { subscription: true },
   });
 
   return Profile;

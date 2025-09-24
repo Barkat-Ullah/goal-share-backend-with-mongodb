@@ -3,10 +3,12 @@
 import httpStatus from 'http-status';
 import AppError from '../errors/AppError';
 
-type ExtractSelect<T> = T extends { findMany(args: { select: infer S }): any } ? S : never;
+type ExtractSelect<T> = T extends { findMany(args: { select: infer S }): any }
+  ? S
+  : never;
 
 class QueryBuilder<
-  ModelDelegate extends { findMany: Function; count: Function; }
+  ModelDelegate extends { findMany: Function; count: Function },
 > {
   private model: ModelDelegate;
   private query: Record<string, unknown>;
@@ -27,7 +29,11 @@ class QueryBuilder<
         OR: searchableFields.map(field => {
           if (field.includes('.')) {
             const [parentField, childField] = field.split('.');
-            return { [parentField]: { [childField]: { contains: searchTerm, mode: 'insensitive' } } };
+            return {
+              [parentField]: {
+                [childField]: { contains: searchTerm, mode: 'insensitive' },
+              },
+            };
           }
           return { [field]: { contains: searchTerm, mode: 'insensitive' } };
         }),
@@ -39,12 +45,23 @@ class QueryBuilder<
   // Filter
   filter() {
     const queryObj = { ...this.query };
-    const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields', 'exclude'];
+    const excludeFields = [
+      'searchTerm',
+      'sort',
+      'limit',
+      'page',
+      'fields',
+      'exclude',
+    ];
     excludeFields.forEach(field => delete queryObj[field]);
 
     const formattedFilters: Record<string, unknown> = {};
 
-    const setNestedObject = (obj: Record<string, any>, path: string, value: unknown) => {
+    const setNestedObject = (
+      obj: Record<string, any>,
+      path: string,
+      value: unknown,
+    ) => {
       const keys = path.split('.');
       let current = obj;
       keys.forEach((key, index) => {
@@ -71,15 +88,40 @@ class QueryBuilder<
     return this;
   }
 
+  //optional include
+  include(data: any) {
+    if (data) {
+      this.prismaQuery.include = {
+        ...this.prismaQuery.include,
+        ...data,
+      };
+    }
+    return this;
+  }
+  //optional select
+  select(data: any) {
+    if (data) {
+      this.prismaQuery.select = {
+        ...this.prismaQuery.select,
+        ...data,
+      };
+    }
+    return this;
+  }
 
+  where(conditions: Record<string, unknown>) {
+    this.prismaQuery.where = {
+      ...this.prismaQuery.where,
+      ...conditions,
+    };
+    return this;
+  }
 
   // Sorting
   sort() {
     const sort = (this.query.sort as string)?.split(',') || ['-createdAt'];
     this.prismaQuery.orderBy = sort.map(field =>
-      field.startsWith('-')
-        ? { [field.slice(1)]: 'desc' }
-        : { [field]: 'asc' }
+      field.startsWith('-') ? { [field.slice(1)]: 'desc' } : { [field]: 'asc' },
     );
     return this;
   }
@@ -100,7 +142,9 @@ class QueryBuilder<
   fields() {
     const fieldsParam = this.query.fields as string;
     if (fieldsParam) {
-      const fields = fieldsParam.split(',').filter(field => field.trim() !== '');
+      const fields = fieldsParam
+        .split(',')
+        .filter(field => field.trim() !== '');
 
       if (fields.length > 0) {
         this.prismaQuery.select = {};
@@ -113,7 +157,9 @@ class QueryBuilder<
           }
         });
 
-        const hasAtLeastOneTrueField = Object.values(this.prismaQuery.select).some(value => value === true);
+        const hasAtLeastOneTrueField = Object.values(
+          this.prismaQuery.select,
+        ).some(value => value === true);
         if (!hasAtLeastOneTrueField) {
           this.prismaQuery.select[this.primaryKeyField] = true;
         }
@@ -133,7 +179,9 @@ class QueryBuilder<
   exclude() {
     const excludeParam = this.query.exclude as string;
     if (excludeParam) {
-      const excludeFields = excludeParam.split(',').filter(field => field.trim() !== '');
+      const excludeFields = excludeParam
+        .split(',')
+        .filter(field => field.trim() !== '');
 
       if (!this.prismaQuery.select) {
         this.prismaQuery.select = {};
@@ -143,7 +191,9 @@ class QueryBuilder<
         this.prismaQuery.select[field.trim()] = false;
       });
 
-      const hasAtLeastOneTrueField = Object.values(this.prismaQuery.select).some(value => value === true);
+      const hasAtLeastOneTrueField = Object.values(
+        this.prismaQuery.select,
+      ).some(value => value === true);
       if (!hasAtLeastOneTrueField) {
         this.prismaQuery.select[this.primaryKeyField] = true;
       }
@@ -159,7 +209,9 @@ class QueryBuilder<
       }
 
       if (this.query.fields) {
-        const hasAtLeastOneTrueField = Object.values(this.prismaQuery.select).some(value => value === true);
+        const hasAtLeastOneTrueField = Object.values(
+          this.prismaQuery.select,
+        ).some(value => value === true);
         if (!hasAtLeastOneTrueField) {
           this.prismaQuery.select[this.primaryKeyField] = true;
         }
@@ -175,7 +227,9 @@ class QueryBuilder<
     // Handle removing primary key from results if requested
     let processedResults = results;
     if (this.query.fields && results.length > 0) {
-      const fieldsRequested = (this.query.fields as string).split(',').map(f => f.trim());
+      const fieldsRequested = (this.query.fields as string)
+        .split(',')
+        .map(f => f.trim());
       if (!fieldsRequested.includes(this.primaryKeyField)) {
         processedResults = results.map((item: Record<string, unknown>) => {
           const newItem = { ...item };

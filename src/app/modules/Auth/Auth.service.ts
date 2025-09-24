@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import httpStatus from 'http-status';
-import { JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
+import { Secret, SignOptions } from 'jsonwebtoken';
 import config from '../../../config';
 import AppError from '../../errors/AppError';
 import { User, UserRoleEnum, UserStatus } from '@prisma/client';
@@ -77,6 +77,7 @@ const loginWithOtpFromDB = async (
 };
 
 const registerWithOtpIntoDB = async (payload: User) => {
+  console.log(payload);
   const hashedPassword: string = await bcrypt.hash(payload.password, 12);
 
   const isUserExistWithTheGmail = await prisma.user.findUnique({
@@ -103,6 +104,7 @@ const registerWithOtpIntoDB = async (payload: User) => {
 
   const newUser = await prisma.user.create({
     data: userData,
+    include: { subscription: true },
   });
 
   try {

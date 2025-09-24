@@ -9,8 +9,12 @@ import { UserRoleEnum } from '@prisma/client';
 
 const router = express.Router();
 
-router.get('/', auth(UserRoleEnum.ADMIN), UserControllers.getAllUsers);
-router.get('/me', auth('ANY'), UserControllers.getMyProfile);
+router.get('/', auth(), UserControllers.getAllUsers);
+router.get(
+  '/me',
+  auth(UserRoleEnum.ADMIN, UserRoleEnum.USER),
+  UserControllers.getMyProfile,
+);
 router.get('/:id', auth('ANY'), UserControllers.getUserDetails);
 
 router.put(

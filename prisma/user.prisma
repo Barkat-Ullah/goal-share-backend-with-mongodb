@@ -22,12 +22,23 @@ model User {
   isApproved      Boolean @default(false)
   isDeleted       Boolean @default(false)
 
+  subscriptionId String?       @db.ObjectId
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+
   sentMessages     Message[]          @relation("SentMessages")
   receivedMessages Message[]          @relation("ReceivedMessages")
   payments         Payment[]
+  motivation       Motivation[]
   notifications    NotificationUser[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  vision           Vision[]
+  communityMembers CommunityMembers[]
+
+  followers Follow[]    @relation("Followers")
+  following Follow[]    @relation("Following")
+  community Community[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }

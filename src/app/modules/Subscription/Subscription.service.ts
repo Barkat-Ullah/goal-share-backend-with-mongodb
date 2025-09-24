@@ -3,13 +3,14 @@ import { prisma } from '../../utils/prisma';
 
 // Create Subscription
 const createIntoDb = async (req: Request) => {
-  const { title, price, subscriptionType } = req.body;
+  const { title, price, subscriptionType, duration } = req.body;
 
   const subscription = await prisma.subscription.create({
     data: {
       title,
       price: parseFloat(price),
       subscriptionType,
+      duration,
     },
   });
 
@@ -53,6 +54,7 @@ const updateIntoDb = async (id: string, data: Partial<any>) => {
       ...(data.subscriptionType && {
         subscriptionType: data.subscriptionType,
       }),
+      ...(data.duration && { duration: data.duration }),
     },
   });
 

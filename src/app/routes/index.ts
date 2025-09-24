@@ -5,6 +5,12 @@ import { NotificationsRouters } from '../modules/Notification/notification.route
 import { AssetRouters } from '../modules/Asset/asset.route';
 import { AuthRouters } from '../modules/Auth/Auth.routes';
 import { SubscriptionRoutes } from '../modules/Subscription/Subscription.routes';
+import { MotivationRoutes } from '../modules/Motivation/Motivation.routes';
+import { VisionRoutes } from '../modules/Vision/Vision.routes';
+import { FollowRoutes } from '../modules/follow/follow.routes';
+import { CommunityRoutes } from '../modules/community/community.routes';
+import { MetaRoutes } from '../modules/meta/analytics.route';
+import { GoalRoutes } from '../modules/goal/goal.routes';
 
 const router = express.Router();
 
@@ -32,6 +38,30 @@ const moduleRoutes = [
   {
     path: '/subscription',
     route: SubscriptionRoutes,
+  },
+  {
+    path: '/motivation',
+    route: MotivationRoutes,
+  },
+  {
+    path: '/vision',
+    route: VisionRoutes,
+  },
+  {
+    path: '/follow',
+    route: FollowRoutes,
+  },
+  {
+    path: '/community',
+    route: CommunityRoutes,
+  },
+  {
+    path: '/meta',
+    route: MetaRoutes,
+  },
+  {
+    path: '/goal',
+    route: GoalRoutes,
   },
 ];
 
