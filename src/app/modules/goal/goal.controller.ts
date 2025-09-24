@@ -5,7 +5,9 @@ import { Request, Response } from 'express';
 import { GoalServices } from './goal.service';
 
 const createIntoDb = catchAsync(async (req: Request, res: Response) => {
-  const result = await GoalServices.createIntoDb(req);
+  const userId = req.user.id as string;
+  console.log(userId);
+  const result = await GoalServices.createIntoDb(req, userId);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
@@ -25,7 +27,7 @@ const getAllGoal = catchAsync(async (req: Request, res: Response) => {
 });
 const getMyGoal = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const result = await GoalServices.getMyGoalIntoDb(userId);
+  const result = await GoalServices.getMyGoalIntoDb(userId, req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

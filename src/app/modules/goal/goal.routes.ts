@@ -1,13 +1,15 @@
 import express from 'express';
 import { GoalController } from './goal.controller';
+import auth from '../../middlewares/auth';
+import { UserRoleEnum } from '@prisma/client';
 
 const router = express.Router();
 
 router.get('/', GoalController.getAllGoal);
-router.get('/my-goal', GoalController.getMyGoal);
+router.get('/my-goal', auth(UserRoleEnum.USER), GoalController.getMyGoal);
 router.get('/:id', GoalController.getGoalById);
 
-router.post('/', GoalController.createIntoDb);
+router.post('/', auth(UserRoleEnum.USER), GoalController.createIntoDb);
 
 router.patch('/:id', GoalController.updateIntoDb);
 
