@@ -4,8 +4,9 @@ import validateRequest from '../../middlewares/validateRequest';
 import auth from '../../middlewares/auth';
 
 import { UserRoleEnum } from '@prisma/client';
-import { authValidation } from './auth.validation';
-import { AuthControllers } from './auth.controller';
+import { authValidation } from './Auth.validation';
+import { AuthControllers } from './Auth.controller';
+
 const router = express.Router();
 
 router.post(

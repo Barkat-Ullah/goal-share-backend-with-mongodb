@@ -11,6 +11,11 @@ router.get(
   SubscriptionController.getAllSubscription,
 );
 router.get(
+  '/my-subscription',
+  auth(UserRoleEnum.USER),
+  SubscriptionController.getMySubscription,
+);
+router.get(
   '/:id',
   auth(UserRoleEnum.ADMIN, UserRoleEnum.USER),
   SubscriptionController.getSubscriptionById,

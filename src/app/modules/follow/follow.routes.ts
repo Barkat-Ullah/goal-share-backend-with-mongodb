@@ -10,6 +10,11 @@ router.get(
   auth(UserRoleEnum.USER),
   FollowController.getMyFollowCountsController,
 );
+router.get(
+  '/suggested-people',
+  auth(UserRoleEnum.USER),
+  FollowController.getMyFollowerFollowingList,
+);
 
 router.get('/counts/:userId', FollowController.getFollowCountsController);
 

@@ -16,6 +16,7 @@ import { verifyOtp } from '../../utils/verifyOtp';
 import sendResponse from '../../utils/sendResponse';
 import { generateToken } from '../../utils/generateToken';
 import { insecurePrisma, prisma } from '../../utils/prisma';
+import emailSender, { generateOtpEmail } from '../../utils/spainxOtp';
 
 const loginWithOtpFromDB = async (
   res: Response,
@@ -77,28 +78,24 @@ const loginWithOtpFromDB = async (
 };
 
 const registerWithOtpIntoDB = async (payload: User) => {
-  console.log(payload);
   const hashedPassword: string = await bcrypt.hash(payload.password, 12);
 
+  // Email check
   const isUserExistWithTheGmail = await prisma.user.findUnique({
-    where: {
-      email: payload.email,
-    },
-    select: {
-      id: true,
-      email: true,
-    },
+    where: { email: payload.email },
+    select: { id: true, email: true },
   });
 
   if (isUserExistWithTheGmail?.id) {
     throw new AppError(httpStatus.CONFLICT, 'User already exists');
   }
 
-  const otp = generateOTP();
+  // OTP generate (number)
+  const otp: number = Math.floor(100000 + Math.random() * 900000);
   const userData: User = {
     ...payload,
     password: hashedPassword,
-    otp,
+    otp: otp.toString(),
     otpExpiry: otpExpiryTime(),
   };
 
@@ -108,7 +105,8 @@ const registerWithOtpIntoDB = async (payload: User) => {
   });
 
   try {
-    sendOtpViaMail(newUser.email, otp);
+    const html = generateOtpEmail(otp);
+    await emailSender(newUser.email, html, 'OTP Verification');
   } catch {
     throw new AppError(
       httpStatus.INTERNAL_SERVER_ERROR,
@@ -118,6 +116,96 @@ const registerWithOtpIntoDB = async (payload: User) => {
 
   return 'Please check mail to verify your email';
 };
+
+// const registerWithOtpIntoDB = async (
+//   payload: User & { subscriptionType: SubscriptionType },
+// ) => {
+//   const hashedPassword: string = await bcrypt.hash(payload.password, 12);
+
+//   // Email check
+//   const isUserExistWithTheGmail = await prisma.user.findUnique({
+//     where: { email: payload.email },
+//     select: { id: true, email: true },
+//   });
+
+//   if (isUserExistWithTheGmail?.id) {
+//     throw new AppError(httpStatus.CONFLICT, 'User already exists');
+//   }
+
+//   // OTP generate (number)
+//   const otp: number = Math.floor(100000 + Math.random() * 900000);
+//   const userData: User = {
+//     ...payload,
+//     password: hashedPassword,
+//     otp: otp.toString(),
+//     otpExpiry: otpExpiryTime(),
+//   };
+
+//   // TODO: Check subscription type
+//   if (payload.subscriptionType === SubscriptionType.FREE) {
+//     // Free subscription - direct create user with subscription
+//     const freeSubscription = await prisma.subscription.findFirst({
+//       where: { subscriptionType: SubscriptionType.FREE },
+//     });
+
+//     const newUser = await prisma.user.create({
+//       data: {
+//         ...userData,
+//         subscriptionId: freeSubscription?.id,
+//       },
+//       include: { subscription: true },
+//     });
+
+//     try {
+//       const html = generateOtpEmail(otp);
+//       await emailSender(newUser.email, html, 'OTP Verification');
+//     } catch {
+//       throw new AppError(
+//         httpStatus.INTERNAL_SERVER_ERROR,
+//         'Failed to send OTP email',
+//       );
+//     }
+
+//     return 'Please check mail to verify your email';
+//   } else {
+//     // Monthly or Yearly subscription
+//     // TODO: Create user first
+//     const newUser = await prisma.user.create({
+//       data: userData,
+//     });
+
+//     // TODO: Create payment record for the subscription
+//     const subscription = await prisma.subscription.findFirst({
+//       where: { subscriptionType: payload.subscriptionType },
+//     });
+
+//     if (!subscription) {
+//       throw new AppError(httpStatus.BAD_REQUEST, 'Subscription not found');
+//     }
+
+//     await prisma.payment.create({
+//       data: {
+//         userId: newUser.id,
+//         subscriptionId: subscription.id,
+//         amount: subscription.price,
+//         currency: 'usd', // TODO: could be dynamic if needed
+//         status: PaymentStatus.PENDING, // payment pending initially
+//       },
+//     });
+
+//     try {
+//       const html = generateOtpEmail(otp);
+//       await emailSender(newUser.email, html, 'OTP Verification');
+//     } catch {
+//       throw new AppError(
+//         httpStatus.INTERNAL_SERVER_ERROR,
+//         'Failed to send OTP email',
+//       );
+//     }
+
+//     return 'User registered. Please check mail to verify your email and complete payment';
+//   }
+// };
 
 const verifyEmailWithOtp = async (payload: { email: string; otp: string }) => {
   const { userData } = await verifyOtp(payload);

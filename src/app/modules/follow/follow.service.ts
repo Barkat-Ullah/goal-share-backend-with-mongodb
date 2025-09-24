@@ -1,5 +1,7 @@
 import { prisma } from '../../utils/prisma';
 
+export const searchableFields = ['fullName', 'email'];
+
 const followUser = async (followerId: string, followingId: string) => {
   if (followerId === followingId) throw new Error('You cannot follow yourself');
 
@@ -83,6 +85,87 @@ const getMyFollowCounts = async (userId: string) => {
   return { followersCount, followingCount };
 };
 
+const getMyFollowerFollowingList = async (
+  userId: string,
+  searchQuery: string = '',
+) => {
+  // followers/following
+  let followerSearchCondition = {};
+  let followingSearchCondition = {};
+
+  if (searchQuery) {
+    // follower user
+    followerSearchCondition = {
+      follower: {
+        OR: searchableFields.map(field => ({
+          [field]: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        })),
+      },
+    };
+
+    // following user
+    followingSearchCondition = {
+      following: {
+        OR: searchableFields.map(field => ({
+          [field]: {
+            contains: searchQuery,
+            mode: 'insensitive',
+          },
+        })),
+      },
+    };
+  }
+
+  // followers list
+  const followersList = await prisma.follow.findMany({
+    where: {
+      followingId: userId,
+      ...followerSearchCondition,
+    },
+    include: {
+      follower: {
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          profile: true,
+        },
+      },
+    },
+  });
+
+  // following list
+  const followingList = await prisma.follow.findMany({
+    where: {
+      followerId: userId,
+      ...followingSearchCondition,
+    },
+    include: {
+      following: {
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          profile: true,
+        },
+      },
+    },
+  });
+
+  const followers = followersList.map(f => f.follower);
+  const following = followingList.map(f => f.following);
+
+  // Merge + remove duplicates
+  const users = [...followers, ...following].filter(
+    (v, i, a) => a.findIndex(t => t.id === v.id) === i,
+  );
+
+  return { users };
+};
+
 export const FollowServices = {
   followUser,
   unfollowUser,
@@ -90,4 +173,5 @@ export const FollowServices = {
   getFollowing,
   getFollowCounts,
   getMyFollowCounts,
+  getMyFollowerFollowingList,
 };

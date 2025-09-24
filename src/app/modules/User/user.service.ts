@@ -144,6 +144,60 @@ const updateUserApproval = async (userId: string) => {
   return result;
 };
 
+const softDeleteUserIntoDB = async (id: string) => {
+  const result = await prisma.user.update({
+    where: { id },
+    data: { isDeleted: true },
+    select: {
+      id: true,
+      isDeleted: true,
+    },
+  });
+  return result;
+};
+const hardDeleteUserIntoDB = async (id: string, adminId: string) => {
+  const adminUser = await prisma.user.findUnique({
+    where: {
+      id: adminId,
+      role: UserRoleEnum.ADMIN,
+    },
+  });
+  if (!adminUser) {
+    throw new AppError(httpStatus.UNAUTHORIZED, 'You are not a admin');
+  }
+
+  return await prisma.$transaction(
+    async tx => {
+      // related tables delete
+      await tx.goal.deleteMany({ where: { userId: id } });
+      await tx.message.deleteMany({ where: { senderId: id } });
+      await tx.message.deleteMany({ where: { receiverId: id } });
+      await tx.payment.deleteMany({ where: { userId: id } });
+      await tx.motivation.deleteMany({ where: { userId: id } });
+      await tx.notificationUser.deleteMany({ where: { userId: id } });
+      await tx.vision.deleteMany({ where: { userId: id } });
+      await tx.community.deleteMany({ where: { userId: id } });
+      await tx.communityMembers.deleteMany({ where: { userId: id } });
+      await tx.follow.deleteMany({
+        where: {
+          OR: [{ followerId: id }, { followingId: id }],
+        },
+      });
+
+      const deletedUser = await tx.user.delete({
+        where: { id },
+        select: { id: true, email: true },
+      });
+
+      return deletedUser;
+    },
+    {
+      timeout: 20000,
+      maxWait: 5000,
+    },
+  );
+};
+
 export const UserServices = {
   getAllUsersFromDB,
   getMyProfileFromDB,
@@ -153,4 +207,6 @@ export const UserServices = {
   updateProfileStatus,
   updateProfileImg,
   updateUserApproval,
+  softDeleteUserIntoDB,
+  hardDeleteUserIntoDB,
 };

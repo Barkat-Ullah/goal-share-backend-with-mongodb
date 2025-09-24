@@ -84,6 +84,24 @@ const getMyFollowCountsController = catchAsync(
     });
   },
 );
+const getMyFollowerFollowingList = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user.id;
+    const searchQuery = (req.query.search as string) || '';
+    const { users } = await FollowServices.getMyFollowerFollowingList(
+      userId,
+      searchQuery,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Your follower and following counts retrieved successfully',
+      data: users,
+      // data: { users },
+    });
+  },
+);
 
 export const FollowController = {
   followUser,
@@ -92,4 +110,5 @@ export const FollowController = {
   getFollowing,
   getFollowCountsController,
   getMyFollowCountsController,
+  getMyFollowerFollowingList,
 };
