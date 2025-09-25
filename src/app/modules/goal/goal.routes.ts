@@ -5,15 +5,64 @@ import { UserRoleEnum } from '@prisma/client';
 
 const router = express.Router();
 
-router.get('/', GoalController.getAllGoal);
-router.get('/my-goal', auth(UserRoleEnum.USER), GoalController.getMyGoal);
-router.get('/:id', GoalController.getGoalById);
+// Goal routes
+router.get('/my-goals', auth(UserRoleEnum.USER), GoalController.getMyGoals);
+router.get('/:id', auth(UserRoleEnum.USER), GoalController.getGoalById);
+router.post('/', auth(UserRoleEnum.USER), GoalController.createGoal);
 
-router.post('/', auth(UserRoleEnum.USER), GoalController.createIntoDb);
+router.patch('/:id', auth(UserRoleEnum.USER), GoalController.updateGoal);
+router.delete('/:id', auth(UserRoleEnum.USER), GoalController.deleteGoal);
+router.patch(
+  '/:id/status',
+  auth(UserRoleEnum.USER),
+  GoalController.updateGoalStatus,
+);
 
-router.patch('/:id', GoalController.updateIntoDb);
+// Client routes
+//client view details
+router.get(
+  '/clients/:clientId',
+  auth(UserRoleEnum.USER),
+  GoalController.getClientById,
+);
 
-router.delete('/:id', GoalController.deleteIntoDb);
-router.delete('/soft/:id', GoalController.softDeleteIntoDb);
+// client info update
+router.patch(
+  '/clients/:clientId',
+  auth(UserRoleEnum.USER),
+  GoalController.updateClient,
+);
+//create client under goal id
+router.post(
+  '/:goalId/clients',
+  auth(UserRoleEnum.USER),
+  GoalController.addClient,
+);
+//update client status if completed
+router.patch(
+  '/clients/:clientId/status',
+  auth(UserRoleEnum.USER),
+  GoalController.updateClientStatus,
+);
+//update client time spent
+router.patch(
+  '/clients/:clientId/update-timeSpent',
+  auth(UserRoleEnum.USER),
+  GoalController.updateClientTimeSpent,
+);
+
+// MyWhy routes
+router.post(
+  '/:goalId/my-why',
+  auth(UserRoleEnum.USER),
+  GoalController.addMyWhy,
+);
+
+// Affirmation routes
+router.post(
+  '/:goalId/affirmation',
+  auth(UserRoleEnum.USER),
+  GoalController.addAffirmation,
+);
 
 export const GoalRoutes = router;

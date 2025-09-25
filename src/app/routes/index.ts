@@ -60,7 +60,7 @@ const moduleRoutes = [
     route: MetaRoutes,
   },
   {
-    path: '/goal',
+    path: '/goals',
     route: GoalRoutes,
   },
 ];

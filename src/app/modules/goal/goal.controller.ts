@@ -4,88 +4,168 @@ import sendResponse from '../../utils/sendResponse';
 import { Request, Response } from 'express';
 import { GoalServices } from './goal.service';
 
-const createIntoDb = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id as string;
-  console.log(userId);
-  const result = await GoalServices.createIntoDb(req, userId);
+// Goal
+const createGoal = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id; // from auth middleware
+  const result = await GoalServices.createGoal(req, userId);
   sendResponse(res, {
     statusCode: httpStatus.CREATED,
     success: true,
-    message: 'Successfully created goal',
+    message: 'Goal created successfully',
     data: result,
   });
 });
 
-const getAllGoal = catchAsync(async (req: Request, res: Response) => {
-  const result = await GoalServices.getAllGoal(req.query);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Successfully retrieved all goal',
-    data: result,
-  });
-});
-const getMyGoal = catchAsync(async (req: Request, res: Response) => {
+const getMyGoals = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const result = await GoalServices.getMyGoalIntoDb(userId, req.query);
+  const result = await GoalServices.getMyGoals(userId, req.query);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Successfully retrieved all goal',
+    message: 'My goals retrieved successfully',
     data: result,
   });
 });
 
 const getGoalById = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await GoalServices.getGoalByIdFromDB(id);
+  const result = await GoalServices.getGoalById(req.params.id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Successfully retrieved goal by id',
+    message: 'Goal details retrieved successfully',
     data: result,
   });
 });
 
-const updateIntoDb = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await GoalServices.updateIntoDb(id, req.body);
+const updateGoal = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.updateGoal(req.params.id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Successfully updated goal',
+    message: 'Goal updated successfully',
     data: result,
   });
 });
 
-const deleteIntoDb = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await GoalServices.deleteIntoDb(id);
+const deleteGoal = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.deleteGoal(req.params.id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Successfully deleted goal',
+    message: 'Goal deleted successfully',
     data: result,
   });
 });
 
-const softDeleteIntoDb = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await GoalServices.softDeleteIntoDb(id);
+const updateGoalStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.updateGoalStatus(
+    req.params.id,
+    req.body.status,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Successfully soft deleted goal',
+    message: 'Goal status updated successfully',
+    data: result,
+  });
+});
+
+// Client
+const addClient = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.addClient(req.params.goalId, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Client added successfully',
+    data: result,
+  });
+});
+
+const getClientById = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.getClientById(req.params.clientId);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Client details retrieved successfully',
+    data: result,
+  });
+});
+
+const updateClient = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.updateClient(req.params.clientId, req.body);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'client updated successfully',
+    data: result,
+  });
+});
+const updateClientTimeSpent = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await GoalServices.updateClientTimeSpent(
+      req.params.clientId,
+      req.body.timeSpent,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'client updated successfully',
+      data: result,
+    });
+  },
+);
+
+const updateClientStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.updateClientTimeSpent(
+    req.params.clientId,
+    req.body.status,
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Client time spent updated successfully',
+    data: result,
+  });
+});
+
+// MyWhy
+const addMyWhy = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.addMyWhy(req.params.goalId, req.body.text);
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'MyWhy added successfully',
+    data: result,
+  });
+});
+
+// Affirmation
+const addAffirmation = catchAsync(async (req: Request, res: Response) => {
+  const result = await GoalServices.addAffirmation(
+    req.params.goalId,
+    req.body.text,
+  );
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Affirmation added successfully',
     data: result,
   });
 });
 
 export const GoalController = {
-  createIntoDb,
-  getAllGoal,
+  createGoal,
+  getMyGoals,
   getGoalById,
-  getMyGoal,
-  updateIntoDb,
-  deleteIntoDb,
-  softDeleteIntoDb,
+  updateGoal,
+  deleteGoal,
+  updateGoalStatus,
+
+  addClient,
+  getClientById,
+  updateClient,
+  updateClientTimeSpent,
+  updateClientStatus,
+  addMyWhy,
+  addAffirmation,
 };
